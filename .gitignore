@@ -3,3 +3,6 @@ node_modules/
 
 # Environment files (don't commit your secrets!)
 .env
+
+#Discord Token
+Discord Token.txt
