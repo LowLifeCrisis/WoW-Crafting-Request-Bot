@@ -69,7 +69,7 @@ module.exports = {
     // Confirm order has been placed
     await interaction.reply({
       content: `✅ Order \`${orderId}\` placed: **${qty}×${itemName}**`,
-      ephemeral: true
+      //ephemeral: true
     });
 
     // Notify the “craft-orders” channel publicly
