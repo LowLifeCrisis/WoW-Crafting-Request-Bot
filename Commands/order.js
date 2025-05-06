@@ -2,6 +2,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { run } = require('../utils/db');
 const { v4: uuidv4 } = require('uuid');
+const { searchItemByName }  = require('../utils/blizzardApi');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,14 +22,33 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    // 1️⃣ Read inputs
-    const item = interaction.options.getString('item');
+    //  Read inputs
+    const itemName = interaction.options.getString('item');
     const qty  = interaction.options.getInteger('quantity');
 
-    // 2️⃣ Generate a unique order ID
+    // Defer reply since we’re making an external API call
+    await interaction.deferReply({ ephemeral: true });
+
+    // Verify the item exists in WoW API
+    let itemData;
+    try {
+      itemData = await searchItemByName(itemName);
+    } catch (err) {
+      console.error('WoW API error:', err);
+      return interaction.editReply({
+        content: '❌ Could not reach WoW API. Please try again later.'
+      });
+    }
+    if (!itemData) {
+      return interaction.editReply({
+        content: `❌ No item named **${itemName}** found on the WoW API.`
+      });
+    }
+
+    // Generate a unique order ID
     const orderId = uuidv4();
 
-    // 3️⃣ Insert into the database
+    // Insert into the database
     try {
       await run(
         `INSERT INTO orders (id, userId, item, quantity, status)
@@ -48,7 +68,7 @@ module.exports = {
 
     // Confirm order has been placed
     await interaction.reply({
-      content: `✅ Order \`${orderId}\` placed: **${qty}×${item}**`,
+      content: `✅ Order \`${orderId}\` placed: **${qty}×${itemName}**`,
       ephemeral: true
     });
 
@@ -58,7 +78,7 @@ module.exports = {
     );
     if (craftChannel) {
       await craftChannel.send(
-        `📦 New order \`${orderId}\` from ${interaction.user.toString()}: **${qty}×${item}**`
+        `📦 New order \`${orderId}\` from ${interaction.user.toString()}: **${qty}×${itemName}**`
       );
     }
   }
