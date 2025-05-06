@@ -35,7 +35,7 @@ async function getAccessToken() {
   tokenCache.expiresAt   = Date.now() + (resp.data.expires_in - 60) * 1000;
   return tokenCache.accessToken;
 }
-
+////////////////////////////////////////////////////
 async function searchItemByName(name) {
   const token  = await getAccessToken();
   const region = process.env.BNET_REGION.toLowerCase(); // e.g. "us"
@@ -45,12 +45,14 @@ async function searchItemByName(name) {
     namespace:    `static-${region}`,
     'name.en_US': name,
     page:         '1',
-    pageSize:     '1',
+   pageSize:     '5',
     orderBy:      'id',
-    locale:       'en_US'
+    pageCount:       '1'
   });
 
-  const url = `https://${region}.api.blizzard.com/data/wow/search/item?${params.toString()}`;
+   //`https://${region}.api.blizzard.com/data/wow/search/item?${params.toString()}`;
+  //Manually set the URL because the above did not work, will troubleshoot later
+  const url = `https://${region}.api.blizzard.com/data/wow/search/item?namespace=static-${region}&name.en_US=${name}&orderby=id&_page=1`
   console.log('🔍 WoW API search URL:', url);
 
   // Pass the token in the header, not in the URL
@@ -59,9 +61,24 @@ async function searchItemByName(name) {
       Authorization: `Bearer ${token}`
     }
   });
+  //Dump the ENTIRE JSON response from Blizzard to see what we're getting
+  console.log('🛠️ Blizzard API raw response:', JSON.stringify(res.data, null, 2));
 
-  return res.data.results?.[0]?.data || null;
+
+// After results are returned they live in memory, specifically under res.data.results 
+// - After the axios.get() call returns, you have a JavaScript object res.
+// - res.data is the parsed JSON body.
+// - res.data.results is an array of search hits.
+
+  // res.data.results is an array of { data: { /* item fields */ } }
+  for (const result of res.data.results) {
+    const itemData = result.data;
+    // Compare Blizzard’s name to the user’s input (case-insensitive)
+    if (res.data.item_subclass[0].toLowerCase() === name.toLowerCase()) {
+      return itemData; 
+}   else {
+    return null
 }
-
+  }
+}
 module.exports = { searchItemByName };
-

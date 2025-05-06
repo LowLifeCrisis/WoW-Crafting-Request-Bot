@@ -33,6 +33,7 @@ module.exports = {
     let itemData;
     try {
       itemData = await searchItemByName(itemName);
+      console.log(itemData)
     } catch (err) {
       console.error('WoW API error:', err);
       return interaction.editReply({
