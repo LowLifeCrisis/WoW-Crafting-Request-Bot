@@ -22,9 +22,20 @@ module.exports = {
       return interaction.reply({ content: 'You have no orders.', ephemeral: true });
     }
 
-    const lines = orders.map(o =>
-      `• \`${o.id}\`: ${o.item}×${o.quantity} — ${o.status}`
-    );
+    const lines = orders.map(o => {
+        // choose an icon based on status
+        let icon;
+        if (o.status === 'complete') {
+          icon = '✅';          // green checkmark
+        } else if (o.status === 'cancelled') {
+          icon = '❌';          // red cross
+        } else {
+          icon = '⌛';          // hourglass for pending
+        }
+  
+        return `\`${o.id}\`: ${o.quantity}×${o.item} — *${o.status}* ${icon}`;
+      });
+
     await interaction.reply({
       content: '**Your Orders:**\n' + lines.join('\n'),
      // ephemeral: true
