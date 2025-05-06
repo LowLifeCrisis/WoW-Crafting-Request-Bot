@@ -1,3 +1,5 @@
+const { run, get } = require('../utils/db');
+
 // commands/cancel.js
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -16,12 +18,15 @@ module.exports = {
     // Grab the order ID from the user
     const orderId = interaction.options.getString('order_id');
 
-    // (Placeholder) Your DB logic to mark the order as cancelled
-    // e.g. 
-    // const success = await db.cancelOrder(orderId);
-    // if (!success) { ...handle error... }
+   // 1️⃣ Check the order exists
+const order = await get(`SELECT * FROM orders WHERE id = ?`, orderId);
+if (!order) {
+  return interaction.reply({ content: `❌ No order ${orderId} found.`});
+}
 
-    // Let the user know it worked
+// 2️⃣ Update status
+await run(`UPDATE orders SET status = ? WHERE id = ?`, 'cancelled', orderId);
+
     await interaction.reply({
       content: `❌ Order \`${orderId}\` has been cancelled. You've been charged 400$, go with honor friend.`,
     });

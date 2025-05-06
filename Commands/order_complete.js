@@ -1,3 +1,4 @@
+const { run, get } = require('../utils/db');
 // commands/complete.js
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -15,15 +16,14 @@ module.exports = {
   async execute(interaction) {
     const orderId = interaction.options.getString('order_id');
 
-    // Update your DB (pseudo-code)
-    // const updated = await db.markOrderComplete(orderId);
-    // if (!updated) {
-    //   return interaction.reply({
-    //     content: `❌ No order found with ID \`${orderId}\`.`,
-    //     ephemeral: true
-    //   });
-    // }
+   // Check the order exists
+const order = await get(`SELECT * FROM orders WHERE id = ?`, orderId);
+if (!order) {
+  return interaction.reply({ content: `❌ No order ${orderId} found.`, ephemeral: true });
+}
 
+// Update status
+await run(`UPDATE orders SET status = ? WHERE id = ?`, 'complete', orderId);
     // Acknowledge the user
     await interaction.reply({
       content: `✅ Order \`${orderId}\` has been marked **complete**.`,
