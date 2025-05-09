@@ -62,7 +62,7 @@ async function searchItemByName(name) {
     }
   });
   //Dump the ENTIRE JSON response from Blizzard to see what we're getting
-  console.log('🛠️ Blizzard API raw response:', JSON.stringify(res.data, null, 2));
+ // console.log('🛠️ Blizzard API raw response:', JSON.stringify(res.data, null, 2));
 
 
 // After results are returned they live in memory, specifically under res.data.results 
@@ -72,13 +72,16 @@ async function searchItemByName(name) {
 
   // res.data.results is an array of { data: { /* item fields */ } }
   for (const result of res.data.results) {
-    const itemData = result.data;
+     let itemData = (result.data)
+     
+    console.log(itemData)
     // Compare Blizzard’s name to the user’s input (case-insensitive)
-    if (res.data.item_subclass[0].toLowerCase() === name.toLowerCase()) {
+    if (itemData.name.en_US.toLowerCase() === name.toLowerCase()) {
       return itemData; 
 }   else {
-    return null
+    return console.log('aint found shit')
 }
   }
 }
 module.exports = { searchItemByName };
+
